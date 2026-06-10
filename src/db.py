@@ -23,6 +23,30 @@ def init_db(db_path: str) -> None:
     
     cursor.execute(create_table_query)
     
+    # Таблица для хранения факта и статистики проверок
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS backup_checks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        check_date REAL NOT NULL,
+        source_path TEXT NOT NULL,
+        backup_path TEXT NOT NULL,
+        missing_count INTEGER DEFAULT 0,
+        modified_count INTEGER DEFAULT 0,
+        extra_count INTEGER DEFAULT 0
+    );
+    """)
+    
+    # Таблица для хранения конкретных расхождений (история)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS backup_diffs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        check_id INTEGER NOT NULL,
+        file_path TEXT NOT NULL,
+        status TEXT NOT NULL, -- 'missing', 'modified', 'extra'
+        FOREIGN KEY (check_id) REFERENCES backup_checks (id)
+    );
+    """)
+    
     conn.commit()
     conn.close()
 

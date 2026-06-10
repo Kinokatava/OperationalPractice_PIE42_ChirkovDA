@@ -26,7 +26,7 @@ def main():
         print(f"Ошибка: '{target_path}' является файлом, а не папкой.")
         sys.exit(1)
         
-    print(f"✅ Путь принят: '{target_path}'")
+    print(f"Путь принят: '{target_path}'")
     
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     db_path = os.path.join(project_root, 'data', 'index.db')

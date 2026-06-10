@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import hashlib
 
 def init_db(db_path: str) -> None:
     db_dir = os.path.dirname(db_path)
@@ -67,3 +68,54 @@ def sync_db(db_path: str, scanned_files: list) -> tuple:
     conn.close()
     
     return added, updated, deleted
+
+
+def get_file_hash(file_path: str, algorithm: str = 'md5', chunk_size: int = 8192) -> str:
+    hasher = hashlib.new(algorithm)
+    try:
+        with open(file_path, 'rb') as f:
+            while chunk := f.read(chunk_size):
+                hasher.update(chunk)
+        return hasher.hexdigest()
+    except (OSError, IOError):
+        return None
+
+def find_duplicates(db_path: str) -> list:
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    query = """
+    SELECT relative_path, hash 
+    FROM files 
+    WHERE hash IS NOT NULL 
+    GROUP BY hash 
+    HAVING COUNT(*) > 1
+    ORDER BY COUNT(*) DESC
+    """
+    
+    cursor.execute(query)
+    duplicate_hashes = [row[1] for row in cursor.fetchall()]
+    
+    duplicates = []
+    
+    for dup_hash in duplicate_hashes:
+        cursor.execute(
+            "SELECT relative_path FROM files WHERE hash = ? ORDER BY relative_path", 
+            (dup_hash,)
+        )
+        group = [row[0] for row in cursor.fetchall()]
+        if len(group) > 1:
+            duplicates.append(group)
+    
+    conn.close()
+    return duplicates
+
+def update_file_hash(db_path: str, relative_path: str, file_hash: str) -> None:
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE files SET hash = ? WHERE relative_path = ?",
+        (file_hash, relative_path)
+    )
+    conn.commit()
+    conn.close()

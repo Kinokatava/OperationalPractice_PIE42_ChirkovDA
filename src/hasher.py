@@ -25,10 +25,6 @@ def should_rehash(db_path: str, rel_path: str, current_size: int, current_mtime:
         
     return False
 
-import os
-import sqlite3
-import db
-
 def process_files_for_hashes(root_path: str, db_path: str, files_list: list) -> dict:
     stats = {'calculated': 0, 'reused': 0, 'errors': 0}
     

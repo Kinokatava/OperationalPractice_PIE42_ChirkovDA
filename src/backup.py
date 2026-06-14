@@ -3,7 +3,7 @@ import time
 import sqlite3
 import db
 
-def compare_with_backup(db_path: str, source_path: str, backup_path: str) -> tuple:
+def compare_with_backup(db_path: str, backup_path: str) -> tuple:
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute("SELECT relative_path, size, hash FROM files")

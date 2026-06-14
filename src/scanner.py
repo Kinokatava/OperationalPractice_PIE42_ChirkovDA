@@ -21,7 +21,8 @@ def scan_directory(root_path: str, allowed_exts: set = None) -> list:
                 
             abs_path = os.path.join(dirpath, filename)
             rel_path = os.path.relpath(abs_path, root_path)
-            
+            rel_path = rel_path.replace(os.sep, '/')
+
             try:
                 stat = os.stat(abs_path)
                 results.append({
